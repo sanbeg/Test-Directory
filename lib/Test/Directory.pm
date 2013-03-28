@@ -100,7 +100,7 @@ sub missing_ok {
     return $rv;
 }
 
-sub ok {
+sub is_ok {
     my $self = shift;
     my $name = shift;
     my $test = $self->builder;
@@ -169,12 +169,12 @@ sub has {
 
 sub has_ok {
     my ($self,$file,$text) = @_;
-    ok( $self->has($file), $text );
+    $self->builder->ok( $self->has($file), $text );
 }
 
 sub hasnt_ok {
     my ($self,$file,$text) = @_;
-    ok( not($self->has($file)), $text );
+    $self->builder->ok( not($self->has($file)), $text );
 }
 
 1;

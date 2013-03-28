@@ -6,7 +6,7 @@ use constant MODULE => 'Test::Directory';
 
 use_ok(MODULE);
 
-my $d='tmp/td';
+my $d='tmp-td';
 {
     my $td = MODULE->new($d);
     $td->touch(1,2);
@@ -20,7 +20,7 @@ my $d='tmp/td';
     is($td->count_unknown, 0, "no unknown files");
     $td->missing_ok("no missing files");
     $td->unknown_ok("no unknown files");
-    $td->ok("No missing or unknown files");
+    $td->is_ok("No missing or unknown files");
 }
 
 ok (!-d $d, 'Dir was removed');
