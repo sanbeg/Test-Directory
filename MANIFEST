@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/Test-Directory.t
+lib/Test/Directory.pm

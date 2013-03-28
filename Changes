@@ -1,0 +1,6 @@
+Revision history for Perl extension Test::Directory.
+
+0.01  Thu Mar 28 08:34:17 2013
+	- original version; created by h2xs 1.23 with options
+		-X -n Test::Directory
+
