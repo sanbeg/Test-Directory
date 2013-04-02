@@ -7,6 +7,7 @@ use Carp;
 use File::Spec;
 use Test::Builder::Module;
 
+our $VERSION = '0.01';
 our @ISA = 'Test::Builder::Module';
 
 sub new {
@@ -196,7 +197,7 @@ sub path {
     File::Spec->catfile($self->{dir}, $self->name($file));
 };
 
-sub has {
+sub check_file {
     my ($self,$file) = @_;
     my $rv;
     if (-f $self->path($file)) {
@@ -207,19 +208,18 @@ sub has {
     return $rv;
 }
 
-sub has_ok {
+sub has {
     my ($self,$file,$text) = @_;
-    $self->builder->ok( $self->has($file), $text );
+    $self->builder->ok( $self->check_file($file), $text );
 }
 
-sub hasnt_ok {
+sub hasnt {
     my ($self,$file,$text) = @_;
-    $self->builder->ok( not($self->has($file)), $text );
+    $self->builder->ok( not($self->check_file($file)), $text );
 }
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
@@ -242,11 +242,11 @@ Test::Directory - Perl extension for maintaining test directories.
 Sometimes, testing code involves making sure that files are created and
 deleted as expected.  This module simplifies maintaining test directories by
 tracking their status as they are modified or tested with this API, making
-it simple to test both individual files, as well as verify that there are no
-missing or unknown files.
+it simple to test both individual files, as well as to verify that there are
+no missing or unknown files.
 
-There are two flavors of functions that examing the directory.  I<Utility>
-functions simply return a count (i.e. the number of files/errors) with no
+There are two flavors of methods for interacting with the directory.  I<Utility>
+methods simply return a value (i.e. the number of files/errors) with no
 output, while the I<Test> functions use L<Test::Builder> to produce the
 approriate test results and diagnostics for the test harness.
 
@@ -254,13 +254,13 @@ approriate test results and diagnostics for the test harness.
 
 =over
 
-=item B<new>(I<PATH> [,I<OPTIONS>])
+=item B<new>(I<$path> [,I<$options>])
 
-Create a new instance pointing to the specified I<PATH>. I<OPTIONS> is 
+Create a new instance pointing to the specified I<$path>. I<$options> is 
 an optional hashref of options.
 
-I<PATH> will be created it necessary.  If I<OPTIONS>->{unique} is set, it is
-an error for <PATH> to already exist.
+I<$path> will be created it necessary.  If I<$options>->{unique} is set, it is
+an error for I<$path> to already exist.
 
 =back
 
@@ -271,9 +271,30 @@ an error for <PATH> to already exist.
 
 =over
 
-=item B<touch>(I<$file>)
+=item B<touch>(I<$file> ...)
 
-Create the specified I<$file> and track its state.
+Create the specified I<$file>s and track their state.
+
+=item B<create>(I<$file>,I<%options>) 
+
+Create the specified I<$file> and track its state.  The I<%options> hash
+support the following:
+
+=over 8
+
+=item B<time> I<$timestamp>
+
+Passed to L<utime> to set the files access and modification times.
+
+=item B<content> I<$data>
+
+Write I<$data> to the file.
+
+=back
+
+=item B<remove_files>(I<$file>...) 
+
+Remove the specified $I<file>s; return the number of files removed.
 
 =back
 
@@ -296,6 +317,17 @@ the state is expected.
 Pass if the test directory has no missing or extra files.
 
 =back
+
+=head2 EXAMPLES
+
+=head3 Calling an external program to move a file
+
+ $dir->touch('my-file.txt');
+ system ('gzip', $dir->path('my-file.txt'));
+ $dir->has  ('my-file.txt.gz', '.gz file is added');
+ $dir->hasnt('my-file.txt',    '.txt file is removed');
+ $dir->is_ok; #verify no other changes to $dir
+
 
 =head1 SEE ALSO
 
