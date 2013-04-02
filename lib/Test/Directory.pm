@@ -144,6 +144,46 @@ sub touch {
     };
 };
 
+sub create {
+  my ($self, $file, %opt) = @_;
+  my $path = $self->path($file);
+
+  open my($fh), '>', $path or croak "$path: $!";
+  $self->{files}{$file} = 1;
+
+  if (defined $opt{content}) {
+    print $fh $opt{content};
+  };
+  if (defined $opt{time}) {
+    utime $opt{time}, $opt{time}, $path;
+  };
+  return $path;
+}
+
+sub remove_files {
+  my $self = shift;
+  my $count = 0;
+  foreach my $file (@_) {
+    my $path = $self->path($file);
+    $self->{files}{$file} = 0;
+    $count += unlink($path);
+  }
+  return $count;
+}
+
+sub remove_ok {
+  my ($self, $file, $test_name) = @_;
+  my $path = $self->path($file);
+
+  $self->{files}{$file} = 0;
+
+  my $rv = $self->builder->ok(unlink($file), $test_name||"removed $file");
+  unless ($rv) {
+    $self->builder->diag("$path: $!");
+  }
+  return $rv;
+}
+
 sub name {
     my ($self,$file) = @_;
     return defined($self->{template})?
@@ -158,13 +198,13 @@ sub path {
 
 sub has {
     my ($self,$file) = @_;
+    my $rv;
     if (-f $self->path($file)) {
-	$self->{files}{$file} = 1;
-	return 1;
+      $rv = $self->{files}{$file} = 1;
     } else {
-	$self->{files}{$file} = 0;
-	return 0;
+      $rv = $self->{files}{$file} = 0;
     }
+    return $rv;
 }
 
 sub has_ok {
@@ -199,6 +239,17 @@ Test::Directory - Perl extension for maintaining test directories.
 
 =head1 DESCRIPTION
 
+Sometimes, testing code involves making sure that files are created and
+deleted as expected.  This module simplifies maintaining test directories by
+tracking their status as they are modified or tested with this API, making
+it simple to test both individual files, as well as verify that there are no
+missing or unknown files.
+
+There are two flavors of functions that examing the directory.  I<Utility>
+functions simply return a count (i.e. the number of files/errors) with no
+output, while the I<Test> functions use L<Test::Builder> to produce the
+approriate test results and diagnostics for the test harness.
+
 =head2 CONSTRUCTOR
 
 =over
@@ -213,9 +264,38 @@ an error for <PATH> to already exist.
 
 =back
 
-=head2 METHODS
+
+=head2 UTILITY METHODS
 
 
+
+=over
+
+=item B<touch>(I<$file>)
+
+Create the specified I<$file> and track its state.
+
+=back
+
+=head2 TEST METHODS
+
+The test methods validate the state of the test directory, calling
+L<Test::Builder>'s I<ok> and I<diag> methods to generate output.
+
+=over
+
+=item B<has>  (I<$file>, I<$test_name>)
+
+=item B<hasnt>(I<$file>, I<$test_name>)
+
+Verify the status of I<$file>, and update its state.  The test will pass if
+the state is expected.
+
+=item B<is_ok>(I<$test_name>)
+
+Pass if the test directory has no missing or extra files.
+
+=back
 
 =head1 SEE ALSO
 
@@ -230,11 +310,11 @@ If you have a web site set up for your module, mention it here.
 
 =head1 AUTHOR
 
-steve, E<lt>steve@E<gt>
+Steve Sanbeg, E<lt>sanbeg@cpan.org<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2013 by steve
+Copyright (C) 2013 by Steve Sanbeg
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.1 or,
