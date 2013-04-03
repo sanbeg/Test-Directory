@@ -3,15 +3,41 @@ use Test::Builder::Tester;
 use lib '.';
 use Test::Directory;
 
-my $td = Test::Directory->new('tmp-td');
+my $tmp = 'tmp-td';
+my $td = Test::Directory->new($tmp);
 $td->touch(1);
 
 test_out("ok 1 - first");
 $td->has(1, 'first');
-test_test('first');
+test_test('has existing file is true');
+
+test_out("not ok 1 - first");
+test_fail(+1);
+$td->hasnt(1, 'first');
+test_test('hasnt existing file is false');
+
+test_out('not ok 1 - second');
+test_fail(+1);
+$td->has(2, 'second');
+test_test('has bogus file is false');
+
+test_out('ok 1 - second');
+$td->hasnt(2, 'second');
+test_test('hasnt bogus file is true');
 
 test_out("ok 1 - empty");
 $td->is_ok("empty");
 test_test('empty');
+
+# open my($fh), '>', "$tmp/xxx";
+# test_out("not ok 1 - empty");
+# test_fail(+2);
+# test_diag("got: 1", "expected: 0");
+# $td->is_ok("empty");
+# test_test('not empty');
+# close $fh;
+# unlink "$tmp/xxx";
+
+
 
 done_testing();

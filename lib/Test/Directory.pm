@@ -34,6 +34,12 @@ sub clean {
     rmdir $self->{dir};
 }
     
+sub clean_ok {
+    my ($self,$text) = @_;
+    $self->builder->ok($self->clean, $text);
+}
+
+
 sub count_unknown {
     my $self = shift;
     opendir my($dh), $self->{dir} or croak "$self->{dir}: $!";
@@ -233,8 +239,8 @@ Test::Directory - Perl extension for maintaining test directories.
  my $dir = Test::Directory->new($path);
  $dir->touch($src_file);
  My::Module::something( $dir->path($src_file) );
- $dir->has($src_file); #is source still there?
- $dir->has($dst_file); #did my module create dst?
+ $dir->has_ok($src_file); #is source still there?
+ $dir->has_ok($dst_file); #did my module create dst?
 
 
 =head1 DESCRIPTION
@@ -245,10 +251,19 @@ tracking their status as they are modified or tested with this API, making
 it simple to test both individual files, as well as to verify that there are
 no missing or unknown files.
 
+Test::Directory implements an object-oriented interface for managing test
+directories.  It tracks which files it knows about (by creating or testing
+them via its API), and can report if any files were missing or unexpectedly
+added.
+
 There are two flavors of methods for interacting with the directory.  I<Utility>
 methods simply return a value (i.e. the number of files/errors) with no
 output, while the I<Test> functions use L<Test::Builder> to produce the
 approriate test results and diagnostics for the test harness.
+
+
+The directory will be automatically cleaned up when the object goes out of
+scope; see the I<clean> method below for details.
 
 =head2 CONSTRUCTOR
 
@@ -266,8 +281,6 @@ an error for I<$path> to already exist.
 
 
 =head2 UTILITY METHODS
-
-
 
 =over
 
@@ -318,6 +331,47 @@ Pass if the test directory has no missing or extra files.
 
 =back
 
+=over
+
+=item B<touch>(I<FILE>)>
+
+Create the specified I<FILE>.
+
+=item B<path>(I<FILE>)
+
+Returns the path for the I<FILE>, including the directory name and any template
+substitutions.  I<FILE> need not exist.
+
+=item B<has>(I<FILE>)
+
+Test if the I<FILE> exists; update its status.  Returns true if I<FILE> exists.
+
+=item B<has_ok>(I<FILE>[,I<TEXT>])
+
+Equivalent to ok(has(I<FILE>),I<TEXT>)
+
+=item B<hasnt_ok>(I<FILE>[,I<TEXT>])
+
+Equivalent to ok(not(has(I<FILE>)),I<TEXT>)
+
+=item B<is_ok>
+
+Succeeds if there are no extra or empty files.
+
+=item B<clean>
+
+Remove all known files, then call I<rmdir> on the directory; returns the
+status of the I<rmdir>.  The presence of any unknown files will cause the
+rmdir to fail, leaving the directory with these unknown files.
+
+This method is called automatically when the object goes out of scope.
+
+=item B<clean_ok>([I<TEXT>])
+
+Equivalent to ok(clean,I<TEXT>)
+
+=back
+
 =head2 EXAMPLES
 
 =head3 Calling an external program to move a file
@@ -328,17 +382,9 @@ Pass if the test directory has no missing or extra files.
  $dir->hasnt('my-file.txt',    '.txt file is removed');
  $dir->is_ok; #verify no other changes to $dir
 
-
 =head1 SEE ALSO
 
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
+L<Test::Builder>
 
 =head1 AUTHOR
 
