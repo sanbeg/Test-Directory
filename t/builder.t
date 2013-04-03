@@ -29,15 +29,16 @@ test_out("ok 1 - empty");
 $td->is_ok("empty");
 test_test('empty');
 
-# open my($fh), '>', "$tmp/xxx";
-# test_out("not ok 1 - empty");
-# test_fail(+2);
-# test_diag("got: 1", "expected: 0");
-# $td->is_ok("empty");
-# test_test('not empty');
-# close $fh;
-# unlink "$tmp/xxx";
-
-
+open my($fh), '>', "$tmp/xxx";
+test_out("not ok 1 - empty");
+test_fail(+5);
+test_diag(
+	  '         got: 1',
+	  '    expected: 0',
+	  'Unknown file: xxx');
+$td->is_ok("empty");
+test_test('not empty');
+close $fh;
+unlink "$tmp/xxx";
 
 done_testing();
