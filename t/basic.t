@@ -20,8 +20,6 @@ my $d='tmp-td';
 
     is($td->count_missing, 0, "no missing files");
     is($td->count_unknown, 0, "no unknown files");
-    $td->missing_ok("no missing files");
-    $td->unknown_ok("no unknown files");
     $td->is_ok("No missing or unknown files");
 }
 

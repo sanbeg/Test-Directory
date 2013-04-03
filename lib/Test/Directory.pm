@@ -134,54 +134,19 @@ sub remove_files {
 # Test Functions
 ##############################
 
+sub has {
+    my ($self,$file,$text) = @_;
+    $self->builder->ok( $self->check_file($file), $text );
+}
+
+sub hasnt {
+    my ($self,$file,$text) = @_;
+    $self->builder->ok( not($self->check_file($file)), $text );
+}
+
 sub clean_ok {
     my ($self,$text) = @_;
     $self->builder->ok($self->clean, $text);
-}
-
-
-
-sub unknown_ok {
-    my $self = shift;
-    my $name = shift;
-
-    opendir my($dh), $self->{dir} or croak "$self->{dir}: $!";
-
-    my %path = map {$self->name($_)=>$self->{files}{$_}} keys %{$self->{files}};
-    my @unknown;
-    while (my $file = readdir($dh)) {
-	next if $file eq '.';
-	next if $file eq '..';
-	next if $path{$file};
-	push @unknown, $file;
-    }
-
-    my $test = $self->builder;
-    my $rv = $test->is_num(scalar(@unknown), 0, $name);
-    if (@unknown) {
-	$test->diag("Unknown file: $_") foreach @unknown;
-    }
-    return $rv;
-};
-
-
-sub missing_ok {
-    my $self = shift;
-    my $name = shift;
-    my $test = $self->builder;
-
-    my @miss;
-    while (my($file,$has) = each %{$self->{files}}) {
-	if ($has and not(-f $self->path($file))) {
-	    push @miss, $file;
-	}
-    }
-
-    my $rv = $test->is_num(scalar(@miss), 0, $name);
-    if (@miss) {
-	$test->diag("Missing: $_") foreach @miss;
-    }
-    return $rv;
 }
 
 sub is_ok {
@@ -216,29 +181,6 @@ sub is_ok {
 }
 
 
-sub remove_ok {
-  my ($self, $file, $test_name) = @_;
-  my $path = $self->path($file);
-
-  $self->{files}{$file} = 0;
-
-  my $rv = $self->builder->ok(unlink($file), $test_name||"removed $file");
-  unless ($rv) {
-    $self->builder->diag("$path: $!");
-  }
-  return $rv;
-}
-
-
-sub has {
-    my ($self,$file,$text) = @_;
-    $self->builder->ok( $self->check_file($file), $text );
-}
-
-sub hasnt {
-    my ($self,$file,$text) = @_;
-    $self->builder->ok( not($self->check_file($file)), $text );
-}
 
 1;
 __END__
@@ -307,7 +249,7 @@ Create the specified I<$file>s and track their state.
 =item B<create>(I<$file>,I<%options>) 
 
 Create the specified I<$file> and track its state.  The I<%options> hash
-support the following:
+supports the following:
 
 =over 8
 
@@ -321,9 +263,22 @@ Write I<$data> to the file.
 
 =back
 
+=item B<path>(I<FILE>)
+
+Returns the path for the I<FILE>, including the directory name and any template
+substitutions.  I<FILE> need not exist.
+
 =item B<remove_files>(I<$file>...) 
 
 Remove the specified $I<file>s; return the number of files removed.
+
+=item B<clean>
+
+Remove all known files, then call I<rmdir> on the directory; returns the
+status of the I<rmdir>.  The presence of any unknown files will cause the
+rmdir to fail, leaving the directory with these unknown files.
+
+This method is called automatically when the object goes out of scope.
 
 =back
 
@@ -344,43 +299,6 @@ the state is expected.
 =item B<is_ok>(I<$test_name>)
 
 Pass if the test directory has no missing or extra files.
-
-=back
-
-=over
-
-=item B<touch>(I<FILE>)>
-
-Create the specified I<FILE>.
-
-=item B<path>(I<FILE>)
-
-Returns the path for the I<FILE>, including the directory name and any template
-substitutions.  I<FILE> need not exist.
-
-=item B<has>(I<FILE>)
-
-Test if the I<FILE> exists; update its status.  Returns true if I<FILE> exists.
-
-=item B<has_ok>(I<FILE>[,I<TEXT>])
-
-Equivalent to ok(has(I<FILE>),I<TEXT>)
-
-=item B<hasnt_ok>(I<FILE>[,I<TEXT>])
-
-Equivalent to ok(not(has(I<FILE>)),I<TEXT>)
-
-=item B<is_ok>
-
-Succeeds if there are no extra or empty files.
-
-=item B<clean>
-
-Remove all known files, then call I<rmdir> on the directory; returns the
-status of the I<rmdir>.  The presence of any unknown files will cause the
-rmdir to fail, leaving the directory with these unknown files.
-
-This method is called automatically when the object goes out of scope.
 
 =item B<clean_ok>([I<TEXT>])
 
@@ -413,6 +331,5 @@ Copyright (C) 2013 by Steve Sanbeg
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.1 or,
 at your option, any later version of Perl 5 you may have available.
-
 
 =cut
