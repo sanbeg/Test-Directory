@@ -1,4 +1,4 @@
-package Test::DirExtra;
+package Test::Directory::Extra;
 use base 'Test::Directory';
 use Carp;
 

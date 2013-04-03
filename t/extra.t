@@ -2,7 +2,7 @@
 
 use Test::More;
 use lib '.';
-use constant MODULE => 'Test::DirExtra';
+use constant MODULE => 'Test::Directory::Extra';
 
 use_ok(MODULE);
 
