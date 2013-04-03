@@ -10,6 +10,10 @@ use Test::Builder::Module;
 our $VERSION = '0.01';
 our @ISA = 'Test::Builder::Module';
 
+##############################
+# Constructor / Destructor
+##############################
+
 sub new {
     my $class = shift;
     my $dir = shift;
@@ -26,6 +30,61 @@ sub new {
     bless \%self, $class;
 }
 
+sub DESTROY {
+    $_[0]->clean;
+}
+
+##############################
+# Utility Functions
+##############################
+
+sub name {
+    my ($self,$file) = @_;
+    return defined($self->{template})?
+	sprintf($self->{template}, $file):
+	$file;
+};
+
+sub path {
+    my ($self,$file) = @_;
+    File::Spec->catfile($self->{dir}, $self->name($file));
+};
+
+sub check_file {
+    my ($self,$file) = @_;
+    my $rv;
+    if (-f $self->path($file)) {
+      $rv = $self->{files}{$file} = 1;
+    } else {
+      $rv = $self->{files}{$file} = 0;
+    }
+    return $rv;
+}
+
+sub touch {
+    my $self = shift;
+    foreach my $file (@_) {
+	open my($fh), '>', $self->path($file);
+	$self->{files}{$file} = 1;
+    };
+};
+
+sub create {
+  my ($self, $file, %opt) = @_;
+  my $path = $self->path($file);
+
+  open my($fh), '>', $path or croak "$path: $!";
+  $self->{files}{$file} = 1;
+
+  if (defined $opt{content}) {
+    print $fh $opt{content};
+  };
+  if (defined $opt{time}) {
+    utime $opt{time}, $opt{time}, $path;
+  };
+  return $path;
+}
+
 sub clean {
     my $self = shift;
     foreach my $file ( keys %{$self->{files}} ) {
@@ -34,12 +93,6 @@ sub clean {
     rmdir $self->{dir};
 }
     
-sub clean_ok {
-    my ($self,$text) = @_;
-    $self->builder->ok($self->clean, $text);
-}
-
-
 sub count_unknown {
     my $self = shift;
     opendir my($dh), $self->{dir} or croak "$self->{dir}: $!";
@@ -54,6 +107,39 @@ sub count_unknown {
     }
     return $count;
 };
+
+sub count_missing {
+    my $self = shift;
+
+    my $count = 0;
+    while (my($file,$has) = each %{$self->{files}}) {
+	++ $count if ($has and not(-f $self->path($file)));
+    }
+    return $count;
+}
+
+
+sub remove_files {
+  my $self = shift;
+  my $count = 0;
+  foreach my $file (@_) {
+    my $path = $self->path($file);
+    $self->{files}{$file} = 0;
+    $count += unlink($path);
+  }
+  return $count;
+}
+
+##############################
+# Test Functions
+##############################
+
+sub clean_ok {
+    my ($self,$text) = @_;
+    $self->builder->ok($self->clean, $text);
+}
+
+
 
 sub unknown_ok {
     my $self = shift;
@@ -78,15 +164,6 @@ sub unknown_ok {
     return $rv;
 };
 
-sub count_missing {
-    my $self = shift;
-
-    my $count = 0;
-    while (my($file,$has) = each %{$self->{files}}) {
-	++ $count if ($has and not(-f $self->path($file)));
-    }
-    return $count;
-}
 
 sub missing_ok {
     my $self = shift;
@@ -139,45 +216,6 @@ sub is_ok {
 }
 
 
-sub DESTROY {
-    $_[0]->clean;
-}
-
-sub touch {
-    my $self = shift;
-    foreach my $file (@_) {
-	open my($fh), '>', $self->path($file);
-	$self->{files}{$file} = 1;
-    };
-};
-
-sub create {
-  my ($self, $file, %opt) = @_;
-  my $path = $self->path($file);
-
-  open my($fh), '>', $path or croak "$path: $!";
-  $self->{files}{$file} = 1;
-
-  if (defined $opt{content}) {
-    print $fh $opt{content};
-  };
-  if (defined $opt{time}) {
-    utime $opt{time}, $opt{time}, $path;
-  };
-  return $path;
-}
-
-sub remove_files {
-  my $self = shift;
-  my $count = 0;
-  foreach my $file (@_) {
-    my $path = $self->path($file);
-    $self->{files}{$file} = 0;
-    $count += unlink($path);
-  }
-  return $count;
-}
-
 sub remove_ok {
   my ($self, $file, $test_name) = @_;
   my $path = $self->path($file);
@@ -191,28 +229,6 @@ sub remove_ok {
   return $rv;
 }
 
-sub name {
-    my ($self,$file) = @_;
-    return defined($self->{template})?
-	sprintf($self->{template}, $file):
-	$file;
-};
-
-sub path {
-    my ($self,$file) = @_;
-    File::Spec->catfile($self->{dir}, $self->name($file));
-};
-
-sub check_file {
-    my ($self,$file) = @_;
-    my $rv;
-    if (-f $self->path($file)) {
-      $rv = $self->{files}{$file} = 1;
-    } else {
-      $rv = $self->{files}{$file} = 0;
-    }
-    return $rv;
-}
 
 sub has {
     my ($self,$file,$text) = @_;
