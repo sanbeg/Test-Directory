@@ -252,25 +252,25 @@ supports the following:
 
 =over 8
 
-=item B<time> I<$timestamp>
+=item B<time> => I<$timestamp>
 
-Passed to L<utime> to set the files access and modification times.
+Passed to L<perlfunc/utime> to set the files access and modification times.
 
-=item B<content> I<$data>
+=item B<content> => I<$data>
 
 Write I<$data> to the file.
 
 =back
 
-=item B<name>(I<FILE>)
+=item B<name>(I<$file>)
 
-Returns the name of the I<FILE>, relative to the directory; including any
-template substitutions.  I<FILE> need not exist.
+Returns the name of the I<$file>, relative to the directory; including any
+template substitutions.  I<$file> need not exist.
 
-=item B<path>(I<FILE>)
+=item B<path>(I<$file>)
 
-Returns the path for the I<FILE>, including the directory name and any template
-substitutions.  I<FILE> need not exist.
+Returns the path for the I<$file>, including the directory name and any template
+substitutions.  I<$file> need not exist.
 
 =item B<check_file>(I<$file>)
 
@@ -315,9 +315,9 @@ the state is expected.
 
 Pass if the test directory has no missing or extra files.
 
-=item B<clean_ok>([I<TEXT>])
+=item B<clean_ok>([I<$test_name>])
 
-Equivalent to ok(clean,I<TEXT>)
+Equivalent to ok(clean,I<$test_name>)
 
 =back
 
