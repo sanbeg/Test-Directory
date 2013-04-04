@@ -85,6 +85,13 @@ sub mkdir {
   $self->{directories}{$dir} = 1;
 }
 
+sub rm_dir {
+  my ($self, $dir) = @_;
+  my $path = $self->path($dir);
+  rmdir($path) or croak "$path: $!";
+  $self->{directories}{$dir} = 0;
+}
+
 sub check_file {
     my ($self,$file) = @_;
     my $rv;
@@ -118,16 +125,28 @@ sub clean {
     rmdir $self->{dir};
 }
     
+sub _path_map {
+    my $self = shift;
+    my %path;
+    while (my ($k,$v) = each %{$self->{files}}) {
+	$path{ $self->name($k) } = $v;
+    };
+    while (my ($k,$v) = each %{$self->{directories}}) {
+	$path{ $self->name($k) } = $v;
+    };
+    return \%path;
+}
+
 sub count_unknown {
     my $self = shift;
+    my $path = $self->_path_map;
     opendir my($dh), $self->{dir} or croak "$self->{dir}: $!";
 
-    my %path = map {$self->name($_)=>$self->{files}{$_}} keys %{$self->{files}};
     my $count = 0;
     while (my $file = readdir($dh)) {
 	next if $file eq '.';
 	next if $file eq '..';
-	next if $path{$file};
+	next if $path->{$file};
 	++ $count;
     }
     return $count;
@@ -139,6 +158,9 @@ sub count_missing {
     my $count = 0;
     while (my($file,$has) = each %{$self->{files}}) {
 	++ $count if ($has and not(-f $self->path($file)));
+    }
+    while (my($file,$has) = each %{$self->{directories}}) {
+	++ $count if ($has and not(-d $self->path($file)));
     }
     return $count;
 }
@@ -161,21 +183,25 @@ sub remove_files {
 
 sub has {
     my ($self,$file,$text) = @_;
+    $text = "File $file is found." unless defined $text;
     $self->builder->ok( $self->check_file($file), $text );
 }
 
 sub hasnt {
     my ($self,$file,$text) = @_;
+    $text = "File $file is not found." unless defined $text;
     $self->builder->ok( not($self->check_file($file)), $text );
 }
 
 sub has_directory {
     my ($self,$file,$text) = @_;
+    $text = "Directory $file is found." unless defined $text;
     $self->builder->ok( $self->check_directory($file), $text );
 }
 
 sub hasnt_directory {
     my ($self,$file,$text) = @_;
+    $text = "Directory $file is not found." unless defined $text;
     $self->builder->ok( not($self->check_directory($file)), $text );
 }
 
@@ -195,21 +221,28 @@ sub is_ok {
 	    push @miss, $file;
 	}
     }
+    my @miss_d;
+    while (my($file,$has) = each %{$self->{directories}}) {
+	if ($has and not(-d $self->path($file))) {
+	    push @miss_d, $file;
+	}
+    }
 
     opendir my($dh), $self->{dir} or croak "$self->{dir}: $!";
 
-    my %path = map {$self->name($_)=>$self->{files}{$_}} keys %{$self->{files}};
+    my $path = $self->_path_map;
     my @unknown;
     while (my $file = readdir($dh)) {
 	next if $file eq '.';
 	next if $file eq '..';
-	next if $path{$file};
+	next if $path->{$file};
 	push @unknown, $file;
     }
 
     my $rv = $test->is_num(@miss+@unknown, 0, $name);
     unless ($rv) {
-	$test->diag("Missing: $_") foreach @miss;
+	$test->diag("Missing file: $_") foreach @miss;
+	$test->diag("Missing directory: $_") foreach @miss_d;
 	$test->diag("Unknown file: $_") foreach @unknown;
     }
     return $rv;

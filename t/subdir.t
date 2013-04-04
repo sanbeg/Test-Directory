@@ -15,6 +15,13 @@ my $d='tmp-td';
   $td->has_directory('sd');
   $td->hasnt_directory('od');
   $td->has('sd/f1');
+
+  mkdir( $td->path('bogus-dir-1') );
+  mkdir( $td->path('bogus-dir-2') );
+
+  is ($td->count_unknown, 2, "2 unknown directory");
+  $td->has_directory('bogus-dir-1');
+  $td->rm_dir('bogus-dir-2');
 }
 ok (!-d($d), "dir was cleaned");
 
