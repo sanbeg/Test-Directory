@@ -196,10 +196,9 @@ Test::Directory - Perl extension for maintaining test directories.
 
  my $dir = Test::Directory->new($path);
  $dir->touch($src_file);
- My::Module::something( $dir->path($src_file) );
- $dir->has_ok($src_file); #is source still there?
- $dir->has_ok($dst_file); #did my module create dst?
-
+ My::Module::something( $dir->path($src_file), $dir->path($dst_file) );
+ $dir->has_ok($dst_file);   #did my module create dst?
+ $dir->hasnt_ok($src_file); #is source still there?
 
 =head1 DESCRIPTION
 
