@@ -19,8 +19,10 @@ sub new {
     my $dir = shift;
     my %opts = @_;
 
+    $opts{unique} = 1 unless defined $opts{unique};
+
     if ($opts{unique}) {
-	mkdir $dir or croak "$dir: $!";
+	mkdir $dir or croak "Failed to create '$dir': $!";
     } else {
 	mkdir $dir;
 	croak "$dir: $!" unless -d $dir;
