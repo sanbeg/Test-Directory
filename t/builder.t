@@ -1,4 +1,4 @@
-use Test::More;
+use Test::More tests=>6;
 use Test::Builder::Tester;
 use lib '.';
 use Test::Directory;
@@ -41,4 +41,3 @@ test_test('not empty');
 close $fh;
 unlink "$tmp/xxx";
 
-done_testing();

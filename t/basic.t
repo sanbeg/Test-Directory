@@ -1,6 +1,4 @@
-#! /usr/bin/perl -w
-
-use Test::More;
+use Test::More tests=>16;
 use lib '.';
 use constant MODULE => 'Test::Directory';
 
@@ -18,11 +16,25 @@ my $d='tmp-td';
     ok(!$td->check_file(3), "object doesn't find file");
     $td->hasnt(3);
 
+    $td->remove_files(2);
+    $td->hasnt(2);
+
+    $td->create('c');
+    $td->has('c');
+
+    $td->create('text', content=>'hello world');
+    is ( -s($td->path('text')), length('hello world'), "got length");
+    $td->create('old', time=>time-3600);
+    cmp_ok( -M($td->path('old')), '>', -M($td->path('text')), 
+	    'old is older than text');
+    
+
     is($td->count_missing, 0, "no missing files");
     is($td->count_unknown, 0, "no unknown files");
     $td->is_ok("No missing or unknown files");
+
+
 }
 
 ok (!-d $d, 'Dir was removed');
 
-done_testing();

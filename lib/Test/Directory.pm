@@ -263,10 +263,20 @@ Write I<$data> to the file.
 
 =back
 
+=item B<name>(I<FILE>)
+
+Returns the name of the I<FILE>, relative to the directory; including any
+template substitutions.  I<FILE> need not exist.
+
 =item B<path>(I<FILE>)
 
 Returns the path for the I<FILE>, including the directory name and any template
 substitutions.  I<FILE> need not exist.
+
+=item B<check_file>(I<$file>)
+
+Checks whether the specified I<$file> exists, and updates its state
+accordingly.  Returns true if I<$file> exists, false otherwise.
 
 =item B<remove_files>(I<$file>...) 
 
@@ -279,6 +289,12 @@ status of the I<rmdir>.  The presence of any unknown files will cause the
 rmdir to fail, leaving the directory with these unknown files.
 
 This method is called automatically when the object goes out of scope.
+
+=item B<count_unknown>
+
+=item B<count_missing>
+
+Returns a count of the unknown or missing files.
 
 =back
 
