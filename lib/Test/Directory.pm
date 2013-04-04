@@ -39,10 +39,13 @@ sub DESTROY {
 ##############################
 
 sub name {
-    my ($self,$file) = @_;
-    return defined($self->{template})?
-	sprintf($self->{template}, $file):
-	$file;
+    my ($self,$path) = @_;
+    my @path = split /\//, $path;
+    my $file = pop @path;
+    if (defined($self->{template})) {
+      $file = sprintf($self->{template}, $file);
+    };
+    File::Spec->catfile(@path,$file);
 };
 
 sub path {
@@ -50,16 +53,6 @@ sub path {
     File::Spec->catfile($self->{dir}, $self->name($file));
 };
 
-sub check_file {
-    my ($self,$file) = @_;
-    my $rv;
-    if (-f $self->path($file)) {
-      $rv = $self->{files}{$file} = 1;
-    } else {
-      $rv = $self->{files}{$file} = 0;
-    }
-    return $rv;
-}
 
 sub touch {
     my $self = shift;
@@ -85,10 +78,42 @@ sub create {
   return $path;
 }
 
+sub mkdir {
+  my ($self, $dir) = @_;
+  my $path = $self->path($dir);
+  mkdir($path) or croak "$path: $!";
+  $self->{directories}{$dir} = 1;
+}
+
+sub check_file {
+    my ($self,$file) = @_;
+    my $rv;
+    if (-f $self->path($file)) {
+      $rv = $self->{files}{$file} = 1;
+    } else {
+      $rv = $self->{files}{$file} = 0;
+    }
+    return $rv;
+}
+
+sub check_directory {
+    my ($self,$dir) = @_;
+    my $rv;
+    if (-d $self->path($dir)) {
+      $rv = $self->{directories}{$dir} = 1;
+    } else {
+      $rv = $self->{directories}{$dir} = 0;
+    }
+    return $rv;
+}
+
 sub clean {
     my $self = shift;
     foreach my $file ( keys %{$self->{files}} ) {
     	unlink $self->path($file);
+    };
+    foreach my $dir ( keys %{$self->{directories}} ) {
+    	rmdir $self->path($dir);
     };
     rmdir $self->{dir};
 }
@@ -142,6 +167,16 @@ sub has {
 sub hasnt {
     my ($self,$file,$text) = @_;
     $self->builder->ok( not($self->check_file($file)), $text );
+}
+
+sub has_directory {
+    my ($self,$file,$text) = @_;
+    $self->builder->ok( $self->check_directory($file), $text );
+}
+
+sub hasnt_directory {
+    my ($self,$file,$text) = @_;
+    $self->builder->ok( not($self->check_directory($file)), $text );
 }
 
 sub clean_ok {
