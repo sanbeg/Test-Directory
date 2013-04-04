@@ -47,7 +47,7 @@ sub name {
     if (defined($self->{template})) {
       $file = sprintf($self->{template}, $file);
     };
-    File::Spec->catfile(@path,$file);
+    return @path ? File::Spec->catfile(@path,$file) : $file;
 };
 
 sub path {
@@ -179,6 +179,17 @@ sub remove_files {
   return $count;
 }
 
+sub remove_directories {
+  my $self = shift;
+  my $count = 0;
+  foreach my $file (@_) {
+    my $path = $self->path($file);
+    $self->{directories}{$file} = 0;
+    $count ++ if rmdir($path);
+  }
+  return $count;
+}
+
 ##############################
 # Test Functions
 ##############################
@@ -195,13 +206,13 @@ sub hasnt {
     $self->builder->ok( not($self->check_file($file)), $text );
 }
 
-sub has_directory {
+sub has_dir {
     my ($self,$file,$text) = @_;
     $text = "Directory $file is found." unless defined $text;
     $self->builder->ok( $self->check_directory($file), $text );
 }
 
-sub hasnt_directory {
+sub hasnt_dir {
     my ($self,$file,$text) = @_;
     $text = "Directory $file is not found." unless defined $text;
     $self->builder->ok( not($self->check_directory($file)), $text );
@@ -216,6 +227,7 @@ sub is_ok {
     my $self = shift;
     my $name = shift;
     my $test = $self->builder;
+    $name = "Directory is consistent" unless defined $name;
 
     my @miss;
     while (my($file,$has) = each %{$self->{files}}) {
@@ -241,7 +253,7 @@ sub is_ok {
 	push @unknown, $file;
     }
 
-    my $rv = $test->is_num(@miss+@unknown, 0, $name);
+    my $rv = $test->ok((@miss+@unknown) == 0, $name);
     unless ($rv) {
 	$test->diag("Missing file: $_") foreach @miss;
 	$test->diag("Missing directory: $_") foreach @miss_d;
@@ -272,11 +284,18 @@ Test::Directory - Perl extension for maintaining test directories.
 
 =head1 DESCRIPTION
 
-Sometimes, testing code involves making sure that files are created and
-deleted as expected.  This module simplifies maintaining test directories by
-tracking their status as they are modified or tested with this API, making
-it simple to test both individual files, as well as to verify that there are
-no missing or unknown files.
+Testing code can involve making sure that files are created and deleted as
+expected.  Doing this manually can be error prone, as it's easy to forget a
+file, or miss that some unexpected file was added. This module simplifies
+maintaining test directories by tracking their status as they are modified
+or tested with this API, making it simple to test both individual files, as
+well as to verify that there are no missing or unknown files.
+
+The idea is to use this API to create a temporary directory and
+populate an initial set of files.  Then, whenever something in the directory
+is changes, use the test methods to verify that the change happened as
+expected.  At any time, it is simple to verify that the contents of the
+directory are exactly as expected.
 
 Test::Directory implements an object-oriented interface for managing test
 directories.  It tracks which files it knows about (by creating or testing
@@ -301,8 +320,10 @@ scope; see the I<clean> method below for details.
 Create a new instance pointing to the specified I<$path>. I<$options> is 
 an optional hashref of options.
 
-I<$path> will be created it necessary.  If I<$options>->{unique} is set, it is
-an error for I<$path> to already exist.
+I<$path> will be created (or the constructor will die).  By default,
+I<$options>->{unique} is true, so it is an error for I<$path> to already
+exist; setting this option to false will allow reusing an existing
+directory.
 
 =back
 
@@ -335,11 +356,18 @@ Write I<$data> to the file.
 =item B<name>(I<$file>)
 
 Returns the name of the I<$file>, relative to the directory; including any
-template substitutions.  I<$file> need not exist.
+template substitutions.  I<$file> need not exist.  This method is used
+internally by most other methods to translate file paths.
+
+For portability, this method implicitly splits the path on UNIX-style /
+seperators, and rejoins it with the local directory seperator.
+
+Absent any template or seperator substitution, the returned value would be
+equivalent to I<$file>.
 
 =item B<path>(I<$file>)
 
-Returns the path for the I<$file>, including the directory name and any template
+Returns the path for the I<$file>, including the directory name and any
 substitutions.  I<$file> need not exist.
 
 =item B<check_file>(I<$file>)
@@ -347,9 +375,26 @@ substitutions.  I<$file> need not exist.
 Checks whether the specified I<$file> exists, and updates its state
 accordingly.  Returns true if I<$file> exists, false otherwise.
 
+This method is used internally by the corresponding test methods.
+
+=item B<check_directory>(I<$directory>)
+
+Checks whether the specified I<$directory> exists, and updates its state
+accordingly.  Returns true if I<$directory> exists, false otherwise.
+
+This method is used internally by the corresponding test methods.
+
+Note that replacing a file with a directory, or vice versa, would require
+calling both I<check_file> and I<check_directory> to update the state to
+reflect both changes.
+
 =item B<remove_files>(I<$file>...) 
 
 Remove the specified $I<file>s; return the number of files removed.
+
+=item B<remove_directories>(I<$directory>...) 
+
+Remove the specified $I<directories>s; return the number of directories removed.
 
 =item B<clean>
 
@@ -363,7 +408,9 @@ This method is called automatically when the object goes out of scope.
 
 =item B<count_missing>
 
-Returns a count of the unknown or missing files.
+Returns a count of the unknown or missing files and directories.  Note that
+files and directores are interchangeable when counting missing files, but
+not when counting unknown files.
 
 =back
 
@@ -379,7 +426,16 @@ L<Test::Builder>'s I<ok> and I<diag> methods to generate output.
 =item B<hasnt>(I<$file>, I<$test_name>)
 
 Verify the status of I<$file>, and update its state.  The test will pass if
-the state is expected.
+the state is expected.  If I<$test_name> is undefined, a default will be
+generated.
+
+=item B<has_dir>  (I<$directory>, I<$test_name>);
+
+=item B<hasnt_dir>(I<$directory>, I<$test_name>);
+
+Verify the status of I<$directory>, and update its state.  The test will
+pass if the state is expected.  If I<$test_name> is undefined, a default will be
+generated.
 
 =item B<is_ok>(I<$test_name>)
 
