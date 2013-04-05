@@ -87,13 +87,6 @@ sub mkdir {
   $self->{directories}{$dir} = 1;
 }
 
-sub rm_dir {
-  my ($self, $dir) = @_;
-  my $path = $self->path($dir);
-  rmdir($path) or croak "$path: $!";
-  $self->{directories}{$dir} = 0;
-}
-
 sub check_file {
     my ($self,$file) = @_;
     my $rv;

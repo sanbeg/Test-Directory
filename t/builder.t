@@ -31,11 +31,8 @@ test_test('empty');
 
 open my($fh), '>', "$tmp/xxx";
 test_out("not ok 1 - empty");
-test_fail(+5);
-test_diag(
-	  '         got: 1',
-	  '    expected: 0',
-	  'Unknown file: xxx');
+test_fail(+2);
+test_diag('Unknown file: xxx');
 $td->is_ok("empty");
 test_test('not empty');
 close $fh;
