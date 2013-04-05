@@ -19,7 +19,9 @@ sub new {
     my $dir = shift;
     my %opts = @_;
 
+
     $opts{unique} = 1 unless defined $opts{unique};
+    $dir = File::Spec->join(split '/', $dir);
 
     if ($opts{unique}) {
 	mkdir $dir or croak "Failed to create '$dir': $!";
@@ -44,7 +46,7 @@ sub name {
     my ($self,$path) = @_;
     my @path = split /\//, $path;
     my $file = pop @path;
-    if (defined($self->{template})) {
+    if (ref($self) and defined($self->{template})) {
       $file = sprintf($self->{template}, $file);
     };
     return @path ? File::Spec->catfile(@path,$file) : $file;
@@ -52,7 +54,9 @@ sub name {
 
 sub path {
     my ($self,$file) = @_;
-    File::Spec->catfile($self->{dir}, $self->name($file));
+    return defined($file)?
+      File::Spec->catfile($self->{dir}, $self->name($file)):
+      $self->{dir};
 };
 
 
@@ -345,6 +349,10 @@ Passed to L<perlfunc/utime> to set the files access and modification times.
 Write I<$data> to the file.
 
 =back
+
+=item B<mkdir>(I<$directory>)
+
+Create the specified I<$directory>; dies if I<mkdir> fails.
 
 =item B<name>(I<$file>)
 

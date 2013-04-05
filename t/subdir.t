@@ -1,4 +1,5 @@
-use Test::More;
+use Test::More tests=>9;
+use Test::Exception;
 use lib '.';
 use constant MODULE => 'Test::Directory';
 
@@ -24,8 +25,8 @@ my $d='tmp-td';
   $td->remove_directories('bogus-dir-2');
 
   is ($td->name("a/b/c"), File::Spec->catfile('a','b','c'), "name contats");
+
+  dies_ok { $td->mkdir('sd') } 'Dupe dir dies';
 }
 ok (!-d($d), "dir was cleaned");
 
-
-done_testing;
