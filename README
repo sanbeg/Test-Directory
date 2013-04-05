@@ -1,16 +1,26 @@
-Test-Directory version 0.01
+Test-Directory - Perl extension for maintaining test directories.
 ===========================
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+Testing code can involve making sure that files are created and deleted as
+expected.  Doing this manually can be error prone, as it's easy to forget a
+file, or miss that some unexpected file was added. This module simplifies
+maintaining test directories by tracking their status as they are modified
+or tested with this API, making it simple to test both individual files, as
+well as to verify that there are no missing or unknown files.
 
-A README file is required for CPAN modules since CPAN extracts the
-README file from a module distribution so that people browsing the
-archive can use it get an idea of the modules uses. It is usually a
-good idea to provide version information here so that people can
-decide whether fixes for the module are worth downloading.
+The idea is to use this API to create a temporary directory and
+populate an initial set of files.  Then, whenever something in the directory
+is changes, use the test methods to verify that the change happened as
+expected.  At any time, it is simple to verify that the contents of the
+directory are exactly as expected.
+
+Test::Directory implements an object-oriented interface for managing test
+directories.  It tracks which files it knows about (by creating or testing
+them via its API), and can report if any files were missing or unexpectedly
+added.
+
+The directory will be automatically cleaned up when the object goes out of
+scope.
 
 INSTALLATION
 
@@ -25,13 +35,14 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
-  blah blah blah
+     - File::Spec
+     - Test::Exception
+     - Test::Builder::Tester
+
 
 COPYRIGHT AND LICENCE
 
-Put the correct copyright and licence information here.
-
-Copyright (C) 2013 by steve
+Copyright (C) 2013 by Steve Sanbeg
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.1 or,
