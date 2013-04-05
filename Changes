@@ -4,3 +4,8 @@ Revision history for Perl extension Test::Directory.
 	- original version; created by h2xs 1.23 with options
 		-X -n Test::Directory
 
+0.02  2013-04-05
+      -add support for subdirs
+      -implicitly do File::Spec->join(split'/',$path) on all paths
+
+
