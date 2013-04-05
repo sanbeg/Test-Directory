@@ -7,7 +7,7 @@ use Carp;
 use File::Spec;
 use Test::Builder::Module;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our @ISA = 'Test::Builder::Module';
 
 ##############################

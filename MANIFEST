@@ -3,9 +3,9 @@ Makefile.PL
 MANIFEST
 README
 lib/Test/Directory.pm
-lib/Test/Directory/Extra.pm
 t/basic.t
 t/builder.t
-t/extra.t
+t/path.t
+t/subdir.t
 t/template.t
 t/unique.t
