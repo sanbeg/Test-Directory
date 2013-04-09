@@ -183,25 +183,25 @@ sub remove_directories {
 
 sub has {
     my ($self,$file,$text) = @_;
-    $text = "File $file is found." unless defined $text;
+    $text = "Has file $file." unless defined $text;
     $self->builder->ok( $self->check_file($file), $text );
 }
 
 sub hasnt {
     my ($self,$file,$text) = @_;
-    $text = "File $file is not found." unless defined $text;
+    $text = "Doesn't have file $file." unless defined $text;
     $self->builder->ok( not($self->check_file($file)), $text );
 }
 
 sub has_dir {
     my ($self,$file,$text) = @_;
-    $text = "Directory $file is found." unless defined $text;
+    $text = "Has directory $file." unless defined $text;
     $self->builder->ok( $self->check_directory($file), $text );
 }
 
 sub hasnt_dir {
     my ($self,$file,$text) = @_;
-    $text = "Directory $file is not found." unless defined $text;
+    $text = "Doesn't have directory $file." unless defined $text;
     $self->builder->ok( not($self->check_directory($file)), $text );
 }
 
