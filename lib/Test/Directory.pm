@@ -20,15 +20,9 @@ sub new {
     my %opts = @_;
 
 
-    $opts{unique} = 1 unless defined $opts{unique};
     $dir = File::Spec->join(split '/', $dir);
 
-    if ($opts{unique}) {
-	mkdir $dir or croak "Failed to create '$dir': $!";
-    } else {
-	mkdir $dir;
-	croak "$dir: $!" unless -d $dir;
-    };
+    mkdir $dir or croak "Failed to create '$dir': $!";
     my %self = (dir => $dir);
     bless \%self, $class;
 }
@@ -313,10 +307,8 @@ scope; see the I<clean> method below for details.
 Create a new instance pointing to the specified I<$path>. I<$options> is 
 an optional hashref of options.
 
-I<$path> will be created (or the constructor will die).  By default,
-I<$options>->{unique} is true, so it is an error for I<$path> to already
-exist; setting this option to false will allow reusing an existing
-directory.
+I<$path> will be created (or the constructor will die).  It is an error for
+I<$path> to already exist.
 
 =back
 
