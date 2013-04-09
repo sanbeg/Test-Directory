@@ -24,7 +24,7 @@ my $d='tmp-td';
   $td->has_dir('bogus-dir-1');
   $td->remove_directories('bogus-dir-2');
 
-  is ($td->name("a/b/c"), File::Spec->catfile('a','b','c'), "name contats");
+  is ($td->name("a/b/c"), File::Spec->catfile('a','b','c'), "name concats");
 
   dies_ok { $td->mkdir('sd') } 'Dupe dir dies';
 }

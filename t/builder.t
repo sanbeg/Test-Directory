@@ -1,4 +1,4 @@
-use Test::More tests=>8;
+use Test::More tests=>10;
 use Test::Builder::Tester;
 use lib '.';
 use Test::Directory;
@@ -11,10 +11,21 @@ test_out("ok 1 - first");
 $td->has(1, 'first');
 test_test('has existing file is true');
 
+test_out("ok 1 - File 1 is found.");
+$td->has(1);
+test_test('has existing file is true, default text');
+
+
 test_out("not ok 1 - first");
 test_fail(+1);
 $td->hasnt(1, 'first');
 test_test('hasnt existing file is false');
+
+test_out("not ok 1 - File 1 is not found.");
+test_fail(+1);
+$td->hasnt(1);
+test_test('hasnt existing file is false');
+
 
 test_out('not ok 1 - second');
 test_fail(+1);

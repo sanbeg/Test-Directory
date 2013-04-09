@@ -1,6 +1,5 @@
 use Test::More tests => 5;
 use Test::Exception;
-use lib '.';
 use constant MODULE => 'Test::Directory';
 
 use_ok(MODULE);
