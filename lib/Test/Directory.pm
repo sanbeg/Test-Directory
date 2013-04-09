@@ -30,7 +30,6 @@ sub new {
 	croak "$dir: $!" unless -d $dir;
     };
     my %self = (dir => $dir);
-    $self{template} = $opts{template} if defined $opts{template};
     bless \%self, $class;
 }
 
@@ -46,9 +45,6 @@ sub name {
     my ($self,$path) = @_;
     my @path = split /\//, $path;
     my $file = pop @path;
-    if (ref($self) and defined($self->{template})) {
-      $file = sprintf($self->{template}, $file);
-    };
     return @path ? File::Spec->catfile(@path,$file) : $file;
 };
 
@@ -357,14 +353,14 @@ Create the specified I<$directory>; dies if I<mkdir> fails.
 =item B<name>(I<$file>)
 
 Returns the name of the I<$file>, relative to the directory; including any
-template substitutions.  I<$file> need not exist.  This method is used
+seperator normalization.  I<$file> need not exist.  This method is used
 internally by most other methods to translate file paths.
 
 For portability, this method implicitly splits the path on UNIX-style /
 seperators, and rejoins it with the local directory seperator.
 
-Absent any template or seperator substitution, the returned value would be
-equivalent to I<$file>.
+Absent any seperator substitution, the returned value would be equivalent to
+I<$file>.
 
 =item B<path>(I<$file>)
 
