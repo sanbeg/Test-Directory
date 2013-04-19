@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Carp;
+use Fcntl;
 use File::Spec;
 use Test::Builder::Module;
 
@@ -51,20 +52,24 @@ sub path {
 
 
 sub touch {
-    my $self = shift;
-    foreach my $file (@_) {
-	open my($fh), '>', $self->path($file);
-	$self->{files}{$file} = 1;
-    };
+  my $self = shift;
+  foreach my $file (@_) {
+    my $path = $self->path($file);
+    sysopen my($fh), $path, O_WRONLY|O_CREAT|O_EXCL
+      or croak "$path: $!";
+    $self->{files}{$file} = 1;
+  };
 };
 
 sub create {
   my ($self, $file, %opt) = @_;
   my $path = $self->path($file);
-
-  open my($fh), '>', $path or croak "$path: $!";
+  
+  sysopen my($fh), $path, O_WRONLY|O_CREAT|O_EXCL
+    or croak "$path: $!";
+  
   $self->{files}{$file} = 1;
-
+  
   if (defined $opt{content}) {
     print $fh $opt{content};
   };
