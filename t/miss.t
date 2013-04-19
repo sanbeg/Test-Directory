@@ -1,4 +1,4 @@
-use Test::More tests=>3;
+use Test::More tests=>4;
 use lib '.';
 use constant MODULE => 'Test::Directory';
 
@@ -10,6 +10,9 @@ my $td = MODULE->new($d);
 $td->touch('past', 'present');
 $td->mkdir('old-dir');
 $td->mkdir('sub-dir');
+$td->mkdir('rm-dir');
+
+is ($td->remove_directories('rm-dir'), 1);
 
 unlink( $td->path('past') );
 rmdir( $td->path('old-dir') );
