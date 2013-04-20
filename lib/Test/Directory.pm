@@ -245,7 +245,7 @@ sub is_ok {
 	push @unknown, $file;
     }
 
-    my $rv = $test->ok((@miss+@unknown) == 0, $name);
+    my $rv = $test->ok((@miss+@unknown+@miss_d) == 0, $name);
     unless ($rv) {
 	$test->diag("Missing file: $_") foreach @miss;
 	$test->diag("Missing directory: $_") foreach @miss_d;
