@@ -9,7 +9,7 @@ use File::Spec;
 use File::Temp;
 use Test::Builder::Module;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our @ISA = 'Test::Builder::Module';
 
 ##############################
@@ -27,7 +27,7 @@ sub new {
       $dir = File::Spec->join(split '/', $dir);
       mkdir $dir or croak "Failed to create '$dir': $!";
     } else {
-      $dir = File::Temp->newdir( $template, CLEANUP=>0, DIR=>'.' );
+      $dir = File::Temp->newdir( $template, CLEANUP=>0, DIR=>'.' )->dirname;
     };
 
     my %self = (dir => $dir);
