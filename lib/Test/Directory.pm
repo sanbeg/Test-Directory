@@ -6,6 +6,7 @@ use warnings;
 use Carp;
 use Fcntl;
 use File::Spec;
+use File::Temp;
 use Test::Builder::Module;
 
 our $VERSION = '0.02';
@@ -15,15 +16,20 @@ our @ISA = 'Test::Builder::Module';
 # Constructor / Destructor
 ##############################
 
+my $template = 'test-directory-tmp-XXXXX';
+
 sub new {
     my $class = shift;
     my $dir = shift;
     my %opts = @_;
 
+    if (defined $dir) {
+      $dir = File::Spec->join(split '/', $dir);
+      mkdir $dir or croak "Failed to create '$dir': $!";
+    } else {
+      $dir = File::Temp->newdir( $template, CLEANUP=>0, DIR=>'.' );
+    };
 
-    $dir = File::Spec->join(split '/', $dir);
-
-    mkdir $dir or croak "Failed to create '$dir': $!";
     my %self = (dir => $dir);
     bless \%self, $class;
 }
@@ -307,13 +313,14 @@ scope; see the I<clean> method below for details.
 
 =over
 
-=item B<new>(I<$path> [,I<$options>])
+=item B<new>([I<$path>, I<$options>, ...])
 
 Create a new instance pointing to the specified I<$path>. I<$options> is 
 an optional hashref of options.
 
-I<$path> will be created (or the constructor will die).  It is an error for
-I<$path> to already exist.
+I<$path> will be created (or the constructor will die).  If I<$path> is
+undefined, a unique path will be automatically generated; otherwise it is an
+error for I<$path> to already exist.
 
 =back
 
