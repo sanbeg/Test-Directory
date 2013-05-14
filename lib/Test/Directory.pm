@@ -221,6 +221,31 @@ sub clean_ok {
     $self->builder->ok($self->clean, $text);
 }
 
+sub _check_dir {
+    my ($dir, $path, $unknown) = @_;
+    opendir my($dh), $dir or croak "$dir: $!";
+
+    while (my $file = readdir($dh)) {
+	next if $file eq '.';
+	next if $file eq '..';
+	next if $path->{$file};
+	push @$unknown, $file;
+    }
+};
+
+sub _check_subdir {
+    my ($self, $dir, $path, $unknown) = @_;
+    opendir my($dh), $self->path($dir) or croak "$self->path(dir): $!";
+
+    while (my $file = readdir($dh)) {
+	next if $file eq '.';
+	next if $file eq '..';
+	my $name = $self->name("$dir/$file");
+	next if $path->{ $name };
+	push @$unknown, $name;
+    }
+};
+
 sub is_ok {
     my $self = shift;
     my $name = shift;
@@ -240,15 +265,16 @@ sub is_ok {
 	}
     }
 
-    opendir my($dh), $self->{dir} or croak "$self->{dir}: $!";
 
     my $path = $self->_path_map;
     my @unknown;
-    while (my $file = readdir($dh)) {
-	next if $file eq '.';
-	next if $file eq '..';
-	next if $path->{$file};
-	push @unknown, $file;
+
+    _check_dir($self->{dir}, $path, \@unknown);
+    while (my($file,$has) = each %{$self->{directories}}) {
+	my $dir = $self->path($file);
+	if ($has and -d $dir) {
+	    $self->_check_subdir($file, $path, \@unknown);
+	}
     }
 
     my $rv = $test->ok((@miss+@unknown+@miss_d) == 0, $name);
