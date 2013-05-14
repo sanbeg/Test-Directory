@@ -1,11 +1,10 @@
-use Test::More tests=>14;
+use Test::More tests=>16;
 use Test::Builder::Tester;
 use lib '.';
 use Test::Directory;
 use strict;
 
-my $tmp = 'tmp-td';
-my $td = Test::Directory->new($tmp);
+my $td = Test::Directory->new;
 $td->touch(1);
 
 test_out("ok 1 - first");
@@ -42,7 +41,7 @@ $td->is_ok("empty");
 test_test('empty');
 
 do {
-  open my($fh), '>', "$tmp/xxx";
+  open my($fh), '>', $td->path('xxx');
   test_out("not ok 1 - empty");
   test_fail(+2);
   test_diag('Unknown file: xxx');
@@ -53,9 +52,9 @@ do {
   test_out('not ok 1 - clean');
   test_fail(+1);
   $td->clean_ok('clean');
-  test_test('clean with extra file files');
+  test_test('clean with extra file fails');
   
-  unlink "$tmp/xxx";
+  unlink $td->path('xxx');
 };
 
 # sub directory tests
@@ -81,3 +80,19 @@ test_out('ok 1 - clean');
 $td->clean_ok('clean');
 test_test('clean is OK');
 
+do {
+  my $td = Test::Directory->new;
+  $td->mkdir('sub-dir');
+  $td->touch('sub-dir/file');
+  test_out("ok 1 - dir is OK");
+  $td->is_ok('dir is OK');
+  test_test('file in subdir is OK');
+
+  open my($fh), '>', $td->path('sub-dir/bogus');
+  test_out("not ok 1 - dir is OK");
+  test_fail(+2);
+  test_diag('Unknown file: sub-dir/bogus');
+  $td->is_ok('dir is OK');
+  test_test('bogus file in subdir is found');
+  $td->remove_files('sub-dir/bogus');
+};

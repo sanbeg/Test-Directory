@@ -1,4 +1,4 @@
-use Test::More tests=>11;
+use Test::More tests=>12;
 use Test::Exception;
 use lib '.';
 use constant MODULE => 'Test::Directory';
@@ -16,6 +16,8 @@ my $d='tmp-td';
   $td->has_dir('sd');
   $td->hasnt_dir('od');
   $td->has('sd/f1');
+
+  $td->is_ok;
 
   mkdir( $td->path('bogus-dir-1') );
   mkdir( $td->path('bogus-dir-2') );
