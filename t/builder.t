@@ -91,7 +91,7 @@ do {
   open my($fh), '>', $td->path('sub-dir/bogus');
   test_out("not ok 1 - dir is OK");
   test_fail(+2);
-  test_diag('Unknown file: sub-dir/bogus');
+  test_diag('Unknown file: ' . $td->name('sub-dir/bogus'));
   $td->is_ok('dir is OK');
   test_test('bogus file in subdir is found');
   $td->remove_files('sub-dir/bogus');
