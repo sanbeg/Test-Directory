@@ -119,12 +119,16 @@ sub clean {
     foreach my $file ( keys %{$self->{files}} ) {
     	unlink $self->path($file);
     };
-    foreach my $dir ( keys %{$self->{directories}} ) {
-    	rmdir $self->path($dir);
+    #get subdirs before parents
+    foreach my $dir (sort {length($b) <=> length($a)}
+		     keys %{$self->{directories}} ) {
+      rmdir $self->path($dir) or carp $self->path($dir) . ": $!";
     };
-    rmdir $self->{dir};
+    my $rv = rmdir $self->{dir};
+    carp "$self->{dir}: $1" unless $rv;
+    return $rv;
 }
-    
+
 sub _path_map {
     my $self = shift;
     my %path;
