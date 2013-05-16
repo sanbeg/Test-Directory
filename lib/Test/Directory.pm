@@ -122,7 +122,7 @@ sub clean {
     #get subdirs before parents
     foreach my $dir (sort {length($b) <=> length($a)}
 		     keys %{$self->{directories}} ) {
-      rmdir $self->path($dir) or carp $self->path($dir) . ": $!";
+      rmdir $self->path($dir);
     };
     my $rv = rmdir $self->{dir};
     carp "$self->{dir}: $1" unless $rv;
