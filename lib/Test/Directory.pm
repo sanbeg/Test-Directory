@@ -11,7 +11,7 @@ use Test::Builder::Module;
 
 use overload '{}' => 'path';
 
-our $VERSION = '0.041';
+our $VERSION = '0.050';
 our @ISA = 'Test::Builder::Module';
 
 ##############################
