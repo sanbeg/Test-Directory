@@ -127,7 +127,7 @@ sub clean {
       rmdir $self->path($dir);
     };
     my $rv = rmdir $self->{dir};
-    carp "$self->{dir}: $1" unless $rv;
+    carp "$self->{dir}: $!" unless $rv;
     return $rv;
 }
 
