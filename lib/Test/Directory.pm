@@ -9,7 +9,7 @@ use File::Spec;
 use File::Temp;
 use Test::Builder::Module;
 
-our $VERSION = '0.051';
+our $VERSION = '0.052';
 our @ISA = 'Test::Builder::Module';
 
 ##############################
